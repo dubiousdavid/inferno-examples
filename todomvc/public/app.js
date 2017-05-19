@@ -330,7 +330,7 @@ function view(model) {
   }, null, {
     'onInput': handleInput,
     'onKeyDown': onEnter
-  })]), numItems > 0 ? main(model) : '', numItems > 0 ? footer(model) : '']), info()]);
+  })]), numItems > 0 ? createVNode(16, Main, _extends({}, model)) : '', numItems > 0 ? createVNode(16, Footer, _extends({}, model)) : '']), createVNode(16, Info)]);
 }
 
 function handleInput(e) {
@@ -345,7 +345,7 @@ function onEnter(e) {
   }
 }
 
-function main(_ref3) {
+function Main(_ref3) {
   var items = _ref3.items,
       filter = _ref3.filter,
       allCompleted = _ref3.allCompleted;
@@ -373,7 +373,9 @@ function main(_ref3) {
     'for': 'toggle-all'
   }, 'Mark all as complete'), createVNode(2, 'ul', {
     'className': 'todo-list'
-  }, items.filter(isVisible).map(viewItem))]);
+  }, items.filter(isVisible).map(function (item) {
+    return createVNode(16, Item, _extends({}, item));
+  }))]);
 }
 
 function toggleAll() {
@@ -392,7 +394,7 @@ function toggleClasses(classes) {
   return output.join(' ');
 }
 
-function viewItem(item) {
+function Item(item) {
   var id = item.id,
       completed = item.completed,
       editing = item.editing,
@@ -463,7 +465,7 @@ function destroyClick(id) {
   actions$.next(['removeItem', id]);
 }
 
-function footer(_ref4) {
+function Footer(_ref4) {
   var items = _ref4.items,
       filter = _ref4.filter;
 
@@ -501,7 +503,7 @@ function viewFilter(filter, currentFilter) {
   }));
 }
 
-function info() {
+function Info() {
   return createVNode(2, 'footer', {
     'className': 'info'
   }, [createVNode(2, 'p', null, 'Double-click to edit a todo'), createVNode(2, 'p', null, ['Created by ', createVNode(2, 'a', {

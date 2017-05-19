@@ -1,28 +1,28 @@
-import Inferno, {linkEvent} from 'inferno'
-import createRouter, { loggerPlugin } from 'router5'
-import browserPlugin from 'router5/plugins/browser'
-import listenersPlugin from 'router5/plugins/listeners'
-import {Observable} from 'rxjs/Observable'
-import {Subject} from 'rxjs/Subject'
-import 'rxjs/add/operator/do'
-import 'rxjs/add/operator/map'
-import 'rxjs/add/operator/scan'
-import 'rxjs/add/operator/startWith'
-import 'rxjs/add/operator/switchMap'
-import 'rxjs/add/operator/publishBehavior'
+import Inferno, { linkEvent } from "inferno"
+import createRouter, { loggerPlugin } from "router5"
+import browserPlugin from "router5/plugins/browser"
+import listenersPlugin from "router5/plugins/listeners"
+import { Observable } from "rxjs/Observable"
+import { Subject } from "rxjs/Subject"
+import "rxjs/add/operator/do"
+import "rxjs/add/operator/map"
+import "rxjs/add/operator/scan"
+import "rxjs/add/operator/startWith"
+import "rxjs/add/operator/switchMap"
+import "rxjs/add/operator/publishBehavior"
 
 // Routing
 const router = createRouter()
-  .addNode('all', '/')
-  .addNode('active', '/active')
-  .addNode('completed', '/completed')
+  .addNode("all", "/")
+  .addNode("active", "/active")
+  .addNode("completed", "/completed")
   .usePlugin(listenersPlugin())
   .usePlugin(loggerPlugin)
   .usePlugin(browserPlugin({ useHash: true }))
   .start()
 
 function Link(props) {
-  let {route, params, children, ...rest} = props
+  let { route, params, children, ...rest } = props
   let href = router.buildUrl(route, params)
 
   return <a {...rest} href={href}>{children}</a>
@@ -32,10 +32,30 @@ function Link(props) {
 let actions$ = new Subject()
 
 // Model
-let initModel = getFromStorage() ||
-  {items: [], allCompleted: false, filter: router.getState().name, text: '', uid: 0}
+// interface TodoItem {
+//   id: number;
+//   completed: boolean;
+//   editing: boolean;
+//   text: string;
+// }
+//
+// interface Model {
+//   items: TodoItem[];
+//   allCompleted: boolean;
+//   filter: string;
+//   text: string;
+//   uid: number;
+// }
 
-const storageKey = 'todos-infernojs'
+let initModel = getFromStorage() || {
+  items: [],
+  allCompleted: false,
+  filter: router.getState().name,
+  text: "",
+  uid: 0
+}
+
+const storageKey = "todos-infernojs"
 
 function getFromStorage() {
   let json = localStorage.getItem(storageKey)
@@ -46,59 +66,73 @@ function getFromStorage() {
 
 // Update
 function update(model, [action, value]) {
-  let {items, allCompleted, filter, text, uid} = model
+  let { items, allCompleted, filter, text, uid } = model
   let newItems
 
   switch (action) {
-    case 'changeText':
-      return {...model, text: value}
-    case 'addItem':
-      return {...model, text: '', allCompleted: false, items: [...items, newItem(value, uid)], uid: uid + 1}
-    case 'toggleItem':
+    case "changeText":
+      return { ...model, text: value }
+    case "addItem":
+      return {
+        ...model,
+        text: "",
+        allCompleted: false,
+        items: [...items, newItem(value, uid)],
+        uid: uid + 1
+      }
+    case "toggleItem":
       newItems = items.map(item => {
-        return item.id == value ? {...item, completed: !item.completed} : item
+        return item.id == value ? { ...item, completed: !item.completed } : item
       })
-      return {...model, items: newItems, allCompleted: allItemsCompleted(newItems)}
-    case 'editItem':
+      return {
+        ...model,
+        items: newItems,
+        allCompleted: allItemsCompleted(newItems)
+      }
+    case "editItem":
       newItems = items.map(item => {
-        return item.id == value ? {...item, editing: true} : item
+        return item.id == value ? { ...item, editing: true } : item
       })
-      return {...model, items: newItems}
-    case 'changeItemText':
+      return { ...model, items: newItems }
+    case "changeItemText":
       newItems = items.map(item => {
-        return item.id == value.id ? {...item, text: value.text} : item
+        return item.id == value.id ? { ...item, text: value.text } : item
       })
-      return {...model, items: newItems}
-    case 'cancelEdit':
+      return { ...model, items: newItems }
+    case "cancelEdit":
       newItems = items.map(item => {
-        return item.editing ? {...item, editing: false} : item
+        return item.editing ? { ...item, editing: false } : item
       })
-      return {...model, items: newItems}
-    case 'updateItem':
-      if (value == '') {
+      return { ...model, items: newItems }
+    case "updateItem":
+      if (value == "") {
         let index = items.findIndex(item => item.editing)
         newItems = index == -1 ? items : removeItem(items, items[index].id)
       } else {
         newItems = items.map(item => {
-          return item.editing ? {...item, editing: false, text: value} : item
+          return item.editing ? { ...item, editing: false, text: value } : item
         })
       }
-      return items != newItems ? {...model, items: newItems} : model
-    case 'removeItem':
+      return items != newItems ? { ...model, items: newItems } : model
+    case "removeItem":
       newItems = removeItem(items, value)
-      return {...model, items: newItems, allCompleted: allItemsCompleted(newItems)}
-    case 'toggleAll':
+      return {
+        ...model,
+        items: newItems,
+        allCompleted: allItemsCompleted(newItems)
+      }
+    case "toggleAll":
       let newAllCompleted = !allCompleted
 
       newItems = items.map(item => {
-        return {...item, completed: newAllCompleted}
+        return { ...item, completed: newAllCompleted }
       })
-      return {...model, items: newItems, allCompleted: newAllCompleted}
-    case 'changeFilter':
-      return {...model, filter: value}
-    case 'clearCompleted':
+      return { ...model, items: newItems, allCompleted: newAllCompleted }
+    case "changeFilter":
+      return { ...model, filter: value }
+    case "clearCompleted":
       newItems = items.filter(item => !item.completed)
-      return {...model, items: newItems}
+      return { ...model, items: newItems }
   }
 }
 
@@ -111,12 +145,12 @@ function allItemsCompleted(items) {
 }
 
 function newItem(text, id) {
-  return {id, text, completed: false, editing: false}
+  return { id, text, completed: false, editing: false }
 }
 
 // View
 function view(model) {
-  let {text} = model
+  let { text } = model
   let numItems = model.items.length
 
   return (
@@ -124,37 +158,43 @@ function view(model) {
       <section className="todoapp">
         <header className="header">
           <h1>todos</h1>
-          <input className="new-todo" placeholder="What needs to be done?" autofocus={true} value={text}
-            onInput={handleInput} onKeyDown={onEnter} />
+          <input
+            className="new-todo"
+            placeholder="What needs to be done?"
+            autofocus={true}
+            value={text}
+            onInput={handleInput}
+            onKeyDown={onEnter}
+          />
         </header>
-        {numItems > 0 ? main(model) : ''}
-        {numItems > 0 ? footer(model) : ''}
+        {numItems > 0 ? <Main {...model} /> : ""}
+        {numItems > 0 ? <Footer {...model} /> : ""}
       </section>
-      {info()}
+      <Info />
     </div>
   )
 }
 
 function handleInput(e) {
   let value = e.target.value.trimLeft()
-  actions$.next(['changeText', value])
+  actions$.next(["changeText", value])
 }
 
 function onEnter(e) {
-  if (e.code == 'Enter') {
+  if (e.code == "Enter") {
     let text = e.target.value.trim()
-    if (text !== '') actions$.next(['addItem', text])
+    if (text !== "") actions$.next(["addItem", text])
   }
 }
 
-function main({items, filter, allCompleted}) {
+function Main({ items, filter, allCompleted }) {
   function isVisible(item) {
     switch (filter) {
-      case 'all':
+      case "all":
         return true
-      case 'completed':
+      case "completed":
         return item.completed
-      case 'active':
+      case "active":
         return !item.completed
     }
   }
@@ -164,39 +204,50 @@ function main({items, filter, allCompleted}) {
       <input className="toggle-all" type="checkbox" checked={allCompleted} onClick={toggleAll} />
       <label for="toggle-all">Mark all as complete</label>
       <ul className="todo-list">
-        { items.filter(isVisible).map(viewItem) }
+        {items.filter(isVisible).map(item => <Item {...item} />)}
       </ul>
     </section>
   )
 }
 
 function toggleAll() {
-  actions$.next(['toggleAll'])
+  actions$.next(["toggleAll"])
 }
 
 function toggleClass(className, enabled) {
-  return enabled ? className : ''
+  return enabled ? className : ""
 }
 
 function toggleClasses(classes) {
   let output = []
-  for(let cls in classes) {
+  for (let cls in classes) {
     output.push(toggleClass(cls, classes[cls]))
   }
-  return output.join(' ')
+  return output.join(" ")
 }
 
-function viewItem(item) {
-  let {id, completed, editing, text} = item
+function Item(item) {
+  let { id, completed, editing, text } = item
   return (
-    <li className={toggleClasses({completed, editing})}>
+    <li className={toggleClasses({ completed, editing })}>
       <div className="view">
-        <input className="toggle" type="checkbox" checked={completed} onClick={linkEvent(id, checkboxClick)} />
+        <input
+          className="toggle"
+          type="checkbox"
+          checked={completed}
+          onClick={linkEvent(id, checkboxClick)}
+        />
         <label onDblClick={linkEvent(id, itemClick)}>{text}</label>
-        <button className="destroy" onClick={linkEvent(id, destroyClick)}></button>
+        <button className="destroy" onClick={linkEvent(id, destroyClick)} />
       </div>
-      <input className="edit" onKeyDown={onEditDone} onBlur={onBlur} value={editing ? text : ''}
-        onInput={linkEvent(id, itemInput)} onComponentDidMount={focusElement} />
+      <input
+        className="edit"
+        onKeyDown={onEditDone}
+        onBlur={onBlur}
+        value={editing ? text : ""}
+        onInput={linkEvent(id, itemInput)}
+        onComponentDidMount={focusElement}
+      />
     </li>
   )
 }
@@ -207,57 +258,57 @@ function focusElement(oldVnode, vnode) {
 
 function itemInput(id, e) {
   let text = e.target.value.trimLeft()
-  actions$.next(['changeItemText', {id, text}])
+  actions$.next(["changeItemText", { id, text }])
 }
 
 function onEditDone(e) {
-  switch (e.code){
-    case 'Enter':
+  switch (e.code) {
+    case "Enter":
       let text = e.target.value.trim()
-      actions$.next(['updateItem', text])
+      actions$.next(["updateItem", text])
       break
-    case 'Escape':
-      actions$.next(['cancelEdit'])
+    case "Escape":
+      actions$.next(["cancelEdit"])
       break
   }
 }
 
 function onBlur(e) {
   let text = e.target.value.trim()
-  actions$.next(['updateItem', text])
+  actions$.next(["updateItem", text])
 }
 
 function itemClick(id) {
-  actions$.next(['editItem', id])
+  actions$.next(["editItem", id])
 }
 
 function checkboxClick(id) {
-  actions$.next(['toggleItem', id])
+  actions$.next(["toggleItem", id])
 }
 
 function destroyClick(id) {
-  actions$.next(['removeItem', id])
+  actions$.next(["removeItem", id])
 }
 
-function footer({items, filter}) {
+function Footer({ items, filter }) {
   let numDone = numCompleted(items)
   let numLeft = items.length - numDone
 
   return (
     <footer className="footer">
       <span className="todo-count">
-        <strong>{numLeft} item{numLeft == 1 ? '' : 's'} left</strong>
+        <strong>{numLeft} item{numLeft == 1 ? "" : "s"} left</strong>
       </span>
       <ul className="filters">
-        {viewFilter('all', filter)}
-        {viewFilter('active', filter)}
-        {viewFilter('completed', filter)}
+        <Filter filter="all" current={filter} />
+        <Filter filter="active" current={filter} />
+        <Filter filter="completed" current={filter} />
       </ul>
-      {numDone >= 1 ?
-          <button className="clear-completed" onClick={clearCompleted}>
+      {numDone >= 1
+        ? <button className="clear-completed" onClick={clearCompleted}>
             Clear Completed ({numDone})
           </button>
-          : ''}
+        : ""}
     </footer>
   )
 }
@@ -267,22 +318,26 @@ function numCompleted(items) {
 }
 
 function clearCompleted(e) {
-  actions$.next(['clearCompleted'])
+  actions$.next(["clearCompleted"])
 }
 
-function viewFilter(filter, currentFilter) {
+function Filter({ filter, current }) {
   return (
     <li>
-      <Link route={filter} className={toggleClass('selected', filter == currentFilter)}>{filter}</Link>
+      <Link route={filter} className={toggleClass("selected", filter == current)}>
+        {filter}
+      </Link>
     </li>
   )
 }
 
-function info() {
+function Info() {
   return (
     <footer className="info">
       <p>Double-click to edit a todo</p>
-      <p>Created by <a href="https://github.com/dubiousdavid">David Sargeant</a></p>
+      <p>
+        Created by <a href="https://github.com/dubiousdavid">David Sargeant</a>
+      </p>
       <p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
     </footer>
   )
@@ -290,9 +345,9 @@ function info() {
 
 // Reduce
 let model$ = actions$
-  .do(x => console.log('Actions', x))
+  .do(x => console.log("Actions", x))
   .scan(update, initModel)
-  .do(x => console.log('Model', x))
+  .do(x => console.log("Model", x))
   .publishBehavior(initModel)
   .refCount()
 
@@ -301,27 +356,25 @@ function writeToStorage(model) {
   localStorage.setItem(storageKey, JSON.stringify(model))
 }
 
-model$
-  .map(disableEditing)
-  .subscribe(writeToStorage)
+model$.map(disableEditing).subscribe(writeToStorage)
 
 function disableEditing(model) {
   let newItems = model.items.map(item => {
-    return {...item, editing: false}
+    return { ...item, editing: false }
   })
-  return {...model, items: newItems}
+  return { ...model, items: newItems }
 }
 
 // Handle route change
 router.addListener(changeFilter)
 
-function changeFilter({name}) {
-  actions$.next(['changeFilter', name])
+function changeFilter({ name }) {
+  actions$.next(["changeFilter", name])
 }
 
 // Render
 let view$ = model$.map(view)
 let render = Inferno.createRenderer()
 view$.subscribe(vNode => {
-  render(document.getElementById('app'), vNode)
+  render(document.getElementById("app"), vNode)
 })
